@@ -20,14 +20,15 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
       const ctx = canvas.getContext("2d");
       if (analyticsChart) analyticsChart.destroy();
 
-      // Prepare data arrays
       const labels = data.timestamps;
       const tempData = data.temperature;
       const humData = data.humidity;
-      const ratingPoints = data.ratings_timestamps.map((t, i) => ({
-        x: t,
-        y: data.ratings[i],
-      }));
+
+      // Build rating points at index positions
+      const ratingPoints = data.ratings_timestamps.map((t, i) => {
+        const idx = labels.indexOf(t);
+        return { x: idx, y: data.ratings[i] };
+      });
 
       analyticsChart = new Chart(ctx, {
         type: "line",
@@ -38,8 +39,8 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
               type: "line",
               label: "Temperature (°C)",
               data: tempData,
-              borderColor: "red",
-              backgroundColor: "rgba(255,0,0,0.2)",
+              borderColor: "#FF8A65", // pastel orange
+              backgroundColor: "rgba(255,138,101,0.2)",
               yAxisID: "y",
               fill: false,
               tension: 0.3,
@@ -48,20 +49,24 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
               type: "line",
               label: "Humidity (%)",
               data: humData,
-              borderColor: "blue",
-              backgroundColor: "rgba(0,0,255,0.2)",
+              borderColor: "#4FC3F7", // pastel blue
+              backgroundColor: "rgba(79,195,247,0.2)",
               yAxisID: "y1",
               fill: false,
               tension: 0.3,
             },
             {
-              type: "scatter",
+              type: "line",
               label: "Sleep Rating",
               data: ratingPoints,
+              borderColor: "#BA68C8", // pastel purple
+              backgroundColor: "rgba(186,104,200,0.2)",
               yAxisID: "y2",
-              showLine: false,
+              fill: false,
+              tension: 0.3,
               pointRadius: 6,
-              backgroundColor: "green",
+              showLine: true,
+              parsing: false,
             },
           ],
         },
