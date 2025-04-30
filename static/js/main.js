@@ -20,15 +20,10 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
       const ctx = canvas.getContext("2d");
       if (analyticsChart) analyticsChart.destroy();
 
-      // prepare rating series aligned with timestamps
-      const morningRatings = data.timestamps.map((t) => {
-        const idx = data.sleep_ratings_timestamps.indexOf(t);
-        return idx !== -1 ? data.sleep_ratings[idx] : null;
-      });
-      const manualRatings = data.timestamps.map((t, i) => {
-        return i === data.timestamps.length - 1 && data.manual_rating != null
-          ? data.manual_rating
-          : null;
+      // Map dummy sleep ratings to the aligned timeline
+      const ratingsSeries = data.timestamps.map((t) => {
+        const idx = data.ratings_timestamps.indexOf(t);
+        return idx !== -1 ? data.ratings[idx] : null;
       });
 
       analyticsChart = new Chart(ctx, {
@@ -49,20 +44,11 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
               fill: false,
             },
             {
-              label: "Morning Rating",
-              data: morningRatings,
+              label: "Sleep Rating",
+              data: ratingsSeries,
               yAxisID: "y2",
               showLine: false,
               pointRadius: 6,
-              pointBackgroundColor: "blue",
-            },
-            {
-              label: "Manual Rating",
-              data: manualRatings,
-              yAxisID: "y2",
-              showLine: false,
-              pointRadius: 8,
-              pointBackgroundColor: "red",
             },
           ],
         },
