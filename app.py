@@ -4,21 +4,25 @@ app = Flask(__name__, template_folder="templates", static_folder="static")
 
 # In-memory storage for dummy data
 ratings = []
-analytics_data = {
-    "timestamps": [
-        "00:00",
-        "01:00",
-        "02:00",
-        "03:00",
-        "04:00",
-        "05:00",
-        "06:00",
-        "07:00",
-        "08:00",
-    ],
-    "temperature": [22, 21.5, 21, 20.5, 20, 19.5, 19, 18.5, 18],
-    "humidity": [40, 42, 44, 46, 48, 50, 52, 54, 56],
-}
+
+# Generate dummy analytics for a 3-day interval at 15-minute intervals
+from datetime import datetime, timedelta
+import math, random
+
+analytics_data = {"timestamps": [], "temperature": [], "humidity": []}
+start = datetime.now() - timedelta(days=3)
+current = start
+while current <= datetime.now():
+    analytics_data["timestamps"].append(current.strftime("%Y-%m-%d %H:%M"))
+    # simulate diurnal temperature variation
+    hour_fraction = current.hour + current.minute / 60
+    temp = 20 + 5 * math.sin((hour_fraction / 24) * 2 * math.pi) + random.uniform(-1, 1)
+    humidity = (
+        50 + 10 * math.cos((hour_fraction / 24) * 2 * math.pi) + random.uniform(-5, 5)
+    )
+    analytics_data["temperature"].append(round(temp, 2))
+    analytics_data["humidity"].append(round(humidity, 2))
+    current += timedelta(minutes=15)
 
 
 @app.route("/")
