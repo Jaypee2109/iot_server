@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder="templates", static_folder="static")
 
 # In-memory storage for dummy data
 ratings = []
@@ -23,7 +23,7 @@ analytics_data = {
 
 @app.route("/")
 def index():
-    return "<h1> Flask is alive!</h1>"
+    return render_template("index.html")
 
 
 @app.route("/api/rating", methods=["POST"])
