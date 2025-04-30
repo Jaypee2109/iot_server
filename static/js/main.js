@@ -1,12 +1,9 @@
 document.getElementById("saveRating").addEventListener("click", () => {
-  const rating = document.getElementById("rating").value;
+  const rating = parseInt(document.getElementById("rating").value);
   fetch("/api/rating", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      rating: parseInt(rating),
-      timestamp: new Date().toISOString(),
-    }),
+    body: JSON.stringify({ timestamp: new Date().toISOString(), rating }),
   })
     .then((res) => res.json())
     .then(() => alert("Rating saved!"));
@@ -34,31 +31,55 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
               yAxisID: "y1",
             },
             {
-              label: "Sleep Rating",
-              data: data.timestamps.map((t, i) =>
-                i === data.timestamps.length - 1 ? data.rating : null
-              ),
+              label: "Morning Rating",
+              data: data.sleep_ratings_timestamps.map((t, i) => ({
+                x: t,
+                y: data.sleep_ratings[i],
+              })),
               type: "scatter",
               yAxisID: "y2",
+              showLine: false,
+            },
+            {
+              label: "Manual Rating",
+              data: data.manual_rating
+                ? [
+                    {
+                      x: data.timestamps[data.timestamps.length - 1],
+                      y: data.manual_rating,
+                    },
+                  ]
+                : [],
+              type: "scatter",
+              yAxisID: "y2",
+              showLine: false,
             },
           ],
         },
         options: {
           scales: {
+            x: {
+              type: "time",
+              time: {
+                parser: "YYYY-MM-DD HH:mm",
+                unit: "hour",
+                displayFormats: { hour: "MMM D, HH:mm" },
+              },
+            },
             y: {
               type: "linear",
               position: "left",
-              title: { display: true, text: "Temperature" },
+              title: { display: true, text: "Temperature (°C)" },
             },
             y1: {
               type: "linear",
               position: "right",
-              title: { display: true, text: "Humidity" },
+              title: { display: true, text: "Humidity (%)" },
             },
             y2: {
               type: "linear",
               position: "right",
-              title: { display: true, text: "Rating" },
+              title: { display: true, text: "Sleep Rating" },
               min: 1,
               max: 9,
             },
