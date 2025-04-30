@@ -20,16 +20,17 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
       const ctx = canvas.getContext("2d");
       if (analyticsChart) analyticsChart.destroy();
 
-      // Prepare datasets mapped to category labels
+      // Prepare data arrays
       const labels = data.timestamps;
       const tempData = data.temperature;
       const humData = data.humidity;
-      const ratingsSeries = labels.map((t, i) => {
-        const idx = data.ratings_timestamps.indexOf(t);
-        return idx !== -1 ? data.ratings[idx] : null;
-      });
+      const ratingPoints = data.ratings_timestamps.map((t, i) => ({
+        x: t,
+        y: data.ratings[i],
+      }));
 
       analyticsChart = new Chart(ctx, {
+        type: "line",
         data: {
           labels: labels,
           datasets: [
@@ -54,15 +55,13 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
               tension: 0.3,
             },
             {
-              type: "line",
+              type: "scatter",
               label: "Sleep Rating",
-              data: ratingsSeries,
-              borderColor: "green",
-              backgroundColor: "green",
+              data: ratingPoints,
               yAxisID: "y2",
-              fill: false,
-              pointRadius: 6,
               showLine: false,
+              pointRadius: 6,
+              backgroundColor: "green",
             },
           ],
         },
