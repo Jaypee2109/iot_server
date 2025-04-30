@@ -1,3 +1,5 @@
+let analyticsChart = null;
+
 document.getElementById("saveRating").addEventListener("click", () => {
   const rating = parseInt(document.getElementById("rating").value);
   fetch("/api/rating", {
@@ -13,9 +15,23 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
   fetch("/api/analytics")
     .then((res) => res.json())
     .then((data) => {
-      const ctx = document.getElementById("analyticsChart").getContext("2d");
-      document.getElementById("analyticsChart").style.display = "block";
-      new Chart(ctx, {
+      const canvas = document.getElementById("analyticsChart");
+      canvas.style.display = "block";
+      const ctx = canvas.getContext("2d");
+      if (analyticsChart) analyticsChart.destroy();
+
+      // prepare rating series aligned with timestamps
+      const morningRatings = data.timestamps.map((t) => {
+        const idx = data.sleep_ratings_timestamps.indexOf(t);
+        return idx !== -1 ? data.sleep_ratings[idx] : null;
+      });
+      const manualRatings = data.timestamps.map((t, i) => {
+        return i === data.timestamps.length - 1 && data.manual_rating != null
+          ? data.manual_rating
+          : null;
+      });
+
+      analyticsChart = new Chart(ctx, {
         type: "line",
         data: {
           labels: data.timestamps,
@@ -24,48 +40,34 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
               label: "Temperature (°C)",
               data: data.temperature,
               yAxisID: "y",
+              fill: false,
             },
             {
               label: "Humidity (%)",
               data: data.humidity,
               yAxisID: "y1",
+              fill: false,
             },
             {
               label: "Morning Rating",
-              data: data.sleep_ratings_timestamps.map((t, i) => ({
-                x: t,
-                y: data.sleep_ratings[i],
-              })),
-              type: "scatter",
+              data: morningRatings,
               yAxisID: "y2",
               showLine: false,
+              pointRadius: 6,
+              pointBackgroundColor: "blue",
             },
             {
               label: "Manual Rating",
-              data: data.manual_rating
-                ? [
-                    {
-                      x: data.timestamps[data.timestamps.length - 1],
-                      y: data.manual_rating,
-                    },
-                  ]
-                : [],
-              type: "scatter",
+              data: manualRatings,
               yAxisID: "y2",
               showLine: false,
+              pointRadius: 8,
+              pointBackgroundColor: "red",
             },
           ],
         },
         options: {
           scales: {
-            x: {
-              type: "time",
-              time: {
-                parser: "YYYY-MM-DD HH:mm",
-                unit: "hour",
-                displayFormats: { hour: "MMM D, HH:mm" },
-              },
-            },
             y: {
               type: "linear",
               position: "left",

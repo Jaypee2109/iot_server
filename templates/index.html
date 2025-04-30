@@ -1,30 +1,37 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sleep Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="/static/css/style.css" />
   </head>
   <body>
-    <h1>Sleep Rating</h1>
-    <label for="rating">Rate your sleep (1-9):</label>
-    <select id="rating">
-      <!-- Options 1 through 9 -->
-      {% for i in range(1,10) %}
-      <option value="{{ i }}">{{ i }}</option>
-      {% endfor %}
-    </select>
-    <button id="saveRating">Save Rating</button>
-    <button id="showAnalytics">Show Analytics</button>
+    <h1>Sleep Dashboard</h1>
+    <section>
+      <label for="rating">Rate your sleep (1–9):</label>
+      <select id="rating">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+      </select>
+      <button id="saveRating">Save Rating</button>
+      <button id="showAnalytics">Show Analytics</button>
+    </section>
 
     <canvas
       id="analyticsChart"
-      width="800"
+      width="1000"
       height="400"
       style="display: none"
     ></canvas>
-
     <script src="/static/js/main.js"></script>
   </body>
 </html>
