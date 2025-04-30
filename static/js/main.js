@@ -20,66 +20,50 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
       const ctx = canvas.getContext("2d");
       if (analyticsChart) analyticsChart.destroy();
 
-      // Prepare datasets with x (time) and y (value)
-      const tempData = data.timestamps.map((t, i) => ({
-        x: t,
-        y: data.temperature[i],
-      }));
-      const humData = data.timestamps.map((t, i) => ({
-        x: t,
-        y: data.humidity[i],
-      }));
-      const ratingData = data.ratings_timestamps.map((t, i) => ({
-        x: t,
-        y: data.ratings[i],
-      }));
+      // Prepare sleep rating aligned with labels
+      const ratingsSeries = data.timestamps.map((t, i) => {
+        const idx = data.ratings_timestamps.indexOf(t);
+        return idx !== -1 ? data.ratings[idx] : null;
+      });
 
       analyticsChart = new Chart(ctx, {
         type: "line",
         data: {
+          labels: data.timestamps,
           datasets: [
             {
               label: "Temperature (°C)",
-              data: tempData,
+              data: data.temperature,
               borderColor: "red",
               backgroundColor: "rgba(255,0,0,0.2)",
               yAxisID: "y",
-              tension: 0.3,
               fill: false,
-              parsing: false,
+              tension: 0.3,
             },
             {
               label: "Humidity (%)",
-              data: humData,
+              data: data.humidity,
               borderColor: "blue",
               backgroundColor: "rgba(0,0,255,0.2)",
               yAxisID: "y1",
-              tension: 0.3,
               fill: false,
-              parsing: false,
+              tension: 0.3,
             },
             {
-              type: "scatter",
               label: "Sleep Rating",
-              data: ratingData,
-              borderColor: "green",
-              backgroundColor: "green",
+              data: ratingsSeries,
+              type: "scatter",
               yAxisID: "y2",
               showLine: false,
               pointRadius: 6,
-              parsing: false,
+              backgroundColor: "green",
             },
           ],
         },
         options: {
           scales: {
             x: {
-              type: "time",
-              time: {
-                parser: "YYYY-MM-DD HH:mm",
-                unit: "hour",
-                displayFormats: { hour: "MMM D, HH:mm" },
-              },
+              type: "category",
               title: { display: true, text: "Time" },
             },
             y: {
