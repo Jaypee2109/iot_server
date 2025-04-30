@@ -20,20 +20,23 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
       const ctx = canvas.getContext("2d");
       if (analyticsChart) analyticsChart.destroy();
 
-      // Prepare sleep rating aligned with labels
-      const ratingsSeries = data.timestamps.map((t, i) => {
+      // Prepare datasets mapped to category labels
+      const labels = data.timestamps;
+      const tempData = data.temperature;
+      const humData = data.humidity;
+      const ratingsSeries = labels.map((t, i) => {
         const idx = data.ratings_timestamps.indexOf(t);
         return idx !== -1 ? data.ratings[idx] : null;
       });
 
       analyticsChart = new Chart(ctx, {
-        type: "line",
         data: {
-          labels: data.timestamps,
+          labels: labels,
           datasets: [
             {
+              type: "line",
               label: "Temperature (°C)",
-              data: data.temperature,
+              data: tempData,
               borderColor: "red",
               backgroundColor: "rgba(255,0,0,0.2)",
               yAxisID: "y",
@@ -41,8 +44,9 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
               tension: 0.3,
             },
             {
+              type: "line",
               label: "Humidity (%)",
-              data: data.humidity,
+              data: humData,
               borderColor: "blue",
               backgroundColor: "rgba(0,0,255,0.2)",
               yAxisID: "y1",
@@ -50,13 +54,15 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
               tension: 0.3,
             },
             {
+              type: "line",
               label: "Sleep Rating",
               data: ratingsSeries,
-              type: "scatter",
-              yAxisID: "y2",
-              showLine: false,
-              pointRadius: 6,
+              borderColor: "green",
               backgroundColor: "green",
+              yAxisID: "y2",
+              fill: false,
+              pointRadius: 6,
+              showLine: false,
             },
           ],
         },
@@ -65,6 +71,7 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
             x: {
               type: "category",
               title: { display: true, text: "Time" },
+              ticks: { maxTicksLimit: 12 },
             },
             y: {
               type: "linear",
