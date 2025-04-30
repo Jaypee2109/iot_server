@@ -20,59 +20,78 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
       const ctx = canvas.getContext("2d");
       if (analyticsChart) analyticsChart.destroy();
 
-      // Map dummy sleep ratings to index-based x-values
-      const ratingPoints = data.ratings_timestamps.map((t, i) => {
-        const idx = data.timestamps.indexOf(t);
-        return { x: idx, y: data.ratings[i] };
-      });
+      // Prepare time-series data for Chart.js time axis
+      const tempData = data.timestamps.map((t, i) => ({
+        x: t,
+        y: data.temperature[i],
+      }));
+      const humData = data.timestamps.map((t, i) => ({
+        x: t,
+        y: data.humidity[i],
+      }));
+      const ratingData = data.ratings_timestamps.map((t, i) => ({
+        x: t,
+        y: data.ratings[i],
+      }));
 
       analyticsChart = new Chart(ctx, {
+        type: "scatter",
         data: {
-          labels: data.timestamps,
           datasets: [
             {
-              type: "line",
               label: "Temperature (°C)",
-              data: data.temperature,
+              data: tempData,
+              borderColor: "red",
+              backgroundColor: "rgba(255,0,0,0.2)",
               yAxisID: "y",
+              showLine: true,
               fill: false,
+              tension: 0.3,
+              parsing: false,
             },
             {
-              type: "line",
               label: "Humidity (%)",
-              data: data.humidity,
+              data: humData,
+              borderColor: "blue",
+              backgroundColor: "rgba(0,0,255,0.2)",
               yAxisID: "y1",
+              showLine: true,
               fill: false,
+              tension: 0.3,
+              parsing: false,
             },
             {
-              type: "scatter",
               label: "Sleep Rating",
-              data: ratingPoints,
+              data: ratingData,
+              type: "scatter",
               yAxisID: "y2",
               showLine: false,
               pointRadius: 6,
               backgroundColor: "green",
+              parsing: false,
             },
           ],
         },
         options: {
           scales: {
             x: {
-              type: "category",
+              type: "time",
+              time: {
+                parser: "YYYY-MM-DD HH:mm",
+                unit: "hour",
+                displayFormats: { hour: "MMM d, HH:mm" },
+              },
               title: { display: true, text: "Time" },
             },
             y: {
-              type: "linear",
               position: "left",
               title: { display: true, text: "Temperature (°C)" },
             },
             y1: {
-              type: "linear",
               position: "right",
               title: { display: true, text: "Humidity (%)" },
             },
             y2: {
-              type: "linear",
               position: "right",
               title: { display: true, text: "Sleep Rating" },
               min: 1,
