@@ -20,11 +20,11 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
       const ctx = canvas.getContext("2d");
       if (analyticsChart) analyticsChart.destroy();
 
-      // Map dummy sleep ratings to the aligned timeline
-      const ratingsSeries = data.timestamps.map((t) => {
-        const idx = data.ratings_timestamps.indexOf(t);
-        return idx !== -1 ? data.ratings[idx] : null;
-      });
+      // Prepare scatter data for sleep ratings
+      const ratingPoints = data.ratings_timestamps.map((t, i) => ({
+        x: t,
+        y: data.ratings[i],
+      }));
 
       analyticsChart = new Chart(ctx, {
         type: "line",
@@ -45,15 +45,25 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
             },
             {
               label: "Sleep Rating",
-              data: ratingsSeries,
+              type: "scatter",
+              data: ratingPoints,
               yAxisID: "y2",
               showLine: false,
               pointRadius: 6,
+              backgroundColor: "green",
             },
           ],
         },
         options: {
           scales: {
+            x: {
+              type: "time",
+              time: {
+                parser: "YYYY-MM-DD HH:mm",
+                unit: "hour",
+                displayFormats: { hour: "MMM D, HH:mm" },
+              },
+            },
             y: {
               type: "linear",
               position: "left",
