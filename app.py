@@ -23,7 +23,7 @@ analytics_data = {
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return open("templates/index.html").read()
 
 
 @app.route("/api/rating", methods=["POST"])
