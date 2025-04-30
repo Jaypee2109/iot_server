@@ -23,7 +23,7 @@ analytics_data = {
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return "<h1> Flask is alive!</h1>"
 
 
 @app.route("/api/rating", methods=["POST"])
