@@ -20,7 +20,7 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
       const ctx = canvas.getContext("2d");
       if (analyticsChart) analyticsChart.destroy();
 
-      // Prepare time-series data for Chart.js time axis
+      // Prepare datasets with x (time) and y (value)
       const tempData = data.timestamps.map((t, i) => ({
         x: t,
         y: data.temperature[i],
@@ -35,7 +35,7 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
       }));
 
       analyticsChart = new Chart(ctx, {
-        type: "scatter",
+        type: "line",
         data: {
           datasets: [
             {
@@ -44,9 +44,8 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
               borderColor: "red",
               backgroundColor: "rgba(255,0,0,0.2)",
               yAxisID: "y",
-              showLine: true,
-              fill: false,
               tension: 0.3,
+              fill: false,
               parsing: false,
             },
             {
@@ -55,19 +54,19 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
               borderColor: "blue",
               backgroundColor: "rgba(0,0,255,0.2)",
               yAxisID: "y1",
-              showLine: true,
-              fill: false,
               tension: 0.3,
+              fill: false,
               parsing: false,
             },
             {
+              type: "scatter",
               label: "Sleep Rating",
               data: ratingData,
-              type: "scatter",
+              borderColor: "green",
+              backgroundColor: "green",
               yAxisID: "y2",
               showLine: false,
               pointRadius: 6,
-              backgroundColor: "green",
               parsing: false,
             },
           ],
@@ -79,23 +78,28 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
               time: {
                 parser: "YYYY-MM-DD HH:mm",
                 unit: "hour",
-                displayFormats: { hour: "MMM d, HH:mm" },
+                displayFormats: { hour: "MMM D, HH:mm" },
               },
               title: { display: true, text: "Time" },
             },
             y: {
+              type: "linear",
               position: "left",
               title: { display: true, text: "Temperature (°C)" },
             },
             y1: {
+              type: "linear",
               position: "right",
               title: { display: true, text: "Humidity (%)" },
+              grid: { drawOnChartArea: false },
             },
             y2: {
+              type: "linear",
               position: "right",
               title: { display: true, text: "Sleep Rating" },
               min: 1,
               max: 9,
+              grid: { drawOnChartArea: false },
             },
           },
         },
