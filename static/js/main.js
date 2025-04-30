@@ -20,32 +20,33 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
       const ctx = canvas.getContext("2d");
       if (analyticsChart) analyticsChart.destroy();
 
-      // Prepare scatter data for sleep ratings
-      const ratingPoints = data.ratings_timestamps.map((t, i) => ({
-        x: t,
-        y: data.ratings[i],
-      }));
+      // Map dummy sleep ratings to index-based x-values
+      const ratingPoints = data.ratings_timestamps.map((t, i) => {
+        const idx = data.timestamps.indexOf(t);
+        return { x: idx, y: data.ratings[i] };
+      });
 
       analyticsChart = new Chart(ctx, {
-        type: "line",
         data: {
           labels: data.timestamps,
           datasets: [
             {
+              type: "line",
               label: "Temperature (°C)",
               data: data.temperature,
               yAxisID: "y",
               fill: false,
             },
             {
+              type: "line",
               label: "Humidity (%)",
               data: data.humidity,
               yAxisID: "y1",
               fill: false,
             },
             {
-              label: "Sleep Rating",
               type: "scatter",
+              label: "Sleep Rating",
               data: ratingPoints,
               yAxisID: "y2",
               showLine: false,
@@ -57,12 +58,8 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
         options: {
           scales: {
             x: {
-              type: "time",
-              time: {
-                parser: "YYYY-MM-DD HH:mm",
-                unit: "hour",
-                displayFormats: { hour: "MMM D, HH:mm" },
-              },
+              type: "category",
+              title: { display: true, text: "Time" },
             },
             y: {
               type: "linear",
