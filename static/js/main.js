@@ -1,5 +1,6 @@
 let analyticsChart = null;
 
+// Save rating button
 document.getElementById("saveRating").addEventListener("click", () => {
   const rating = parseInt(document.getElementById("rating").value);
   fetch("/api/rating", {
@@ -9,6 +10,7 @@ document.getElementById("saveRating").addEventListener("click", () => {
   }).then(() => alert("Rating saved!"));
 });
 
+// Show analytics button
 document.getElementById("showAnalytics").addEventListener("click", () => {
   fetch("/api/analytics")
     .then((res) => res.json())
@@ -19,12 +21,12 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
       if (analyticsChart) analyticsChart.destroy();
 
       const labels = data.timestamps;
-
-      // Build aligned series for temperature, humidity, and ratings
       const tempSeries = data.temperature;
       const humSeries = data.humidity;
-      const ratingsSeries = labels.map((t) => {
-        const idx = data.ratings_timestamps.indexOf(t);
+
+      // Build a series that is null except at 07:00 where rating exists
+      const ratingSeries = labels.map((ts) => {
+        const idx = data.ratings_timestamps.indexOf(ts);
         return idx !== -1 ? data.ratings[idx] : null;
       });
 
@@ -36,8 +38,8 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
             {
               label: "Temperature (°C)",
               data: tempSeries,
-              borderColor: "#FF8A65",
-              backgroundColor: "rgba(255,138,101,0.2)",
+              borderColor: "#FF8A65", // pastel orange
+              backgroundColor: "rgba(255,138,101,0.15)",
               yAxisID: "y",
               tension: 0.3,
               fill: false,
@@ -45,22 +47,22 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
             {
               label: "Humidity (%)",
               data: humSeries,
-              borderColor: "#4FC3F7",
-              backgroundColor: "rgba(79,195,247,0.2)",
+              borderColor: "#4FC3F7", // pastel blue
+              backgroundColor: "rgba(79,195,247,0.15)",
               yAxisID: "y1",
               tension: 0.3,
               fill: false,
             },
             {
               label: "Sleep Rating",
-              data: ratingsSeries,
-              borderColor: "#BA68C8",
+              data: ratingSeries,
+              borderColor: "#BA68C8", // pastel purple
               backgroundColor: "#BA68C8",
               yAxisID: "y2",
               tension: 0,
               fill: false,
               pointRadius: 6,
-              spanGaps: false, // don't connect across nulls
+              spanGaps: true, // connect the rating dots across missing values
             },
           ],
         },
