@@ -97,3 +97,38 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
       });
     });
 });
+
+// Set Alarm button
+document.getElementById("setAlarm").addEventListener("click", () => {
+  const timeStr = document.getElementById("alarmTime").value;
+  if (!timeStr) {
+    return alert("Please pick a time first");
+  }
+  // timeStr is "HH:MM"
+  const [hour, minute] = timeStr.split(":").map((s) => parseInt(s, 10));
+  fetch("/api/alarm", {
+    method: "GET",
+  })
+    .then(() =>
+      fetch("/api/alarm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hour, minute }),
+      })
+    )
+    .then((res) => {
+      if (!res.ok) throw new Error(`Status ${res.status}`);
+      return res.json();
+    })
+    .then((json) => {
+      alert(
+        `Alarm set to ${json.hour.toString().padStart(2, "0")}:${json.minute
+          .toString()
+          .padStart(2, "0")}`
+      );
+    })
+    .catch((err) => {
+      console.error(err);
+      alert("Failed to set alarm");
+    });
+});

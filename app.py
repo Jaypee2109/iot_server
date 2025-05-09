@@ -5,6 +5,7 @@ import math, random
 app = Flask(__name__, template_folder="templates", static_folder="static")
 
 ratings = []
+alarm_setting = {"hour": 7, "minute": 0}
 
 analytics_data = {
     "timestamps": [],
@@ -47,6 +48,32 @@ def api_rating():
     data = request.get_json()
     ratings.append({"timestamp": data["timestamp"], "rating": data["rating"]})
     return jsonify({"status": "success"})
+
+
+@app.route("/api/alarm", methods=["GET"])
+def get_alarm():
+    """
+    Returns the currently configured alarm time.
+    Response: { "hour": <0–23>, "minute": <0–59> }
+    """
+    return jsonify(alarm_setting)
+
+
+@app.route("/api/alarm", methods=["POST"])
+def set_alarm():
+    """
+    Update the alarm time.
+    Expects JSON: { "hour": <0–23>, "minute": <0–59> }.
+    """
+    data = request.get_json(force=True)
+    h = data.get("hour")
+    m = data.get("minute")
+    if not (isinstance(h, int) and 0 <= h < 24 and isinstance(m, int) and 0 <= m < 60):
+        return jsonify({"status": "error", "message": "invalid hour/minute"}), 400
+
+    alarm_setting["hour"] = h
+    alarm_setting["minute"] = m
+    return jsonify({"status": "success", "hour": h, "minute": m})
 
 
 @app.route("/api/analytics")
