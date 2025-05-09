@@ -26,6 +26,35 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/api/analytics", methods=["GET"])
+def get_analytics():
+    """
+    Aggregates sensor, puzzle‐metrics and rating data into one JSON payload.
+    {
+      "timestamps":       [...],    # from sensor_data
+      "temperature":      [...],    # from sensor_data
+      "humidity":         [...],    # from sensor_data
+      "attempts_timestamps":[...],  # from puzzle_metrics
+      "attempts":         [...],    # from puzzle_metrics
+      "reaction_time":    [...],    # from puzzle_metrics
+      "ratings_timestamps":[...],   # from rating_data
+      "ratings":          [...],    # from rating_data
+    }
+    """
+    return jsonify(
+        {
+            "timestamps": sensor_data["timestamps"],
+            "temperature": sensor_data["temperature"],
+            "humidity": sensor_data["humidity"],
+            "attempts_timestamps": puzzle_metrics["timestamps"],
+            "attempts": puzzle_metrics["attempts"],
+            "reaction_time": puzzle_metrics["reaction_time"],
+            "ratings_timestamps": rating_data["timestamps"],
+            "ratings": rating_data["ratings"],
+        }
+    )
+
+
 @app.route("/api/rating", methods=["POST"])
 def post_rating():
     """
