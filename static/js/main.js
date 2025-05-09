@@ -1,5 +1,36 @@
 let analyticsChart = null;
 
+// Fetch and display San Diego’s current weather via Open-Meteo
+function fetchWeather() {
+  const weatherDiv = document.getElementById("weather");
+  weatherDiv.textContent = "Loading weather…";
+  fetch(
+    "https://api.open-meteo.com/v1/forecast" +
+      "?latitude=32.7157&longitude=-117.1611" +
+      "&current_weather=true" +
+      "&timezone=America/Los_Angeles"
+  )
+    .then((res) => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    })
+    .then((data) => {
+      // Open-Meteo returns temperature in °C
+      const tempC = data.current_weather.temperature.toFixed(1);
+      // Optional: convert to °F
+      const tempF = ((tempC * 9) / 5 + 32).toFixed(1);
+      weatherDiv.innerHTML = `<strong>${tempC}°C</strong> (${tempF}°F)`;
+    })
+    .catch((err) => {
+      console.error("Weather fetch failed:", err);
+      weatherDiv.textContent = "Unable to load weather.";
+    });
+}
+
+fetchWeather();
+// refresh every 10 minutes
+setInterval(fetchWeather, 10 * 60 * 1000);
+
 // Save rating button
 document.getElementById("saveRating").addEventListener("click", () => {
   const rating = parseInt(document.getElementById("rating").value);
