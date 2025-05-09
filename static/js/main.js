@@ -106,11 +106,11 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
       ];
 
       // 4) Draw the combined chart
-      const canvas = document.getElementById("combinedChart");
+      const canvas = document.getElementById("analyticsChart");
       canvas.style.display = "block";
       const ctx = canvas.getContext("2d");
-      if (combinedChart) combinedChart.destroy();
-      combinedChart = new Chart(ctx, {
+      if (analyticsChart) analyticsChart.destroy();
+      analyticsChart = new Chart(ctx, {
         type: "line",
         data: { labels, datasets },
         options: {
