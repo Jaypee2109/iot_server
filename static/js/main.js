@@ -43,89 +43,143 @@ document.getElementById("saveRating").addEventListener("click", () => {
 
 // Show analytics button
 document.getElementById("showAnalytics").addEventListener("click", () => {
-  fetch("/api/analytics")
-    .then((res) => res.json())
-    .then((data) => {
+  Promise.all([
+    fetch("/api/analytics").then((r) => r.json()),
+    fetch("/api/sensor").then((r) => r.json()),
+    fetch("/api/metrics").then((r) => r.json()),
+    fetch("/api/rating").then((r) => r.json()),
+  ])
+    .then(([analytics, sensor, metrics, rating]) => {
+      // 1) Build a sorted union of all timestamps
+      const allTimestamps = [
+        ...analytics.timestamps,
+        ...sensor.timestamps,
+        ...metrics.timestamps,
+        ...rating.timestamps,
+      ];
+      // sort lexicographically
+      const labels = Array.from(new Set(allTimestamps)).sort();
+
+      // 2) Helper to map a series onto the unified labels
+      function mapSeries(srcLabels, srcData) {
+        const map = {};
+        srcLabels.forEach((ts, i) => {
+          map[ts] = srcData[i];
+        });
+        return labels.map((ts) => (ts in map ? map[ts] : null));
+      }
+
+      // 3) Prepare all datasets
+      const data = {
+        labels,
+        datasets: [
+          {
+            label: "Analytics Temp (°C)",
+            data: mapSeries(analytics.timestamps, analytics.temperature),
+            yAxisID: "yTemp",
+            borderColor: "#FF8A65",
+            fill: false,
+          },
+          {
+            label: "Analytics Hum (%)",
+            data: mapSeries(analytics.timestamps, analytics.humidity),
+            yAxisID: "yHum",
+            borderColor: "#4FC3F7",
+            fill: false,
+          },
+          {
+            label: "ESP32 Temp (°C)",
+            data: mapSeries(sensor.timestamps, sensor.temperature),
+            yAxisID: "yTemp",
+            borderColor: "#D32F2F",
+            fill: false,
+          },
+          {
+            label: "ESP32 Hum (%)",
+            data: mapSeries(sensor.timestamps, sensor.humidity),
+            yAxisID: "yHum",
+            borderColor: "#1976D2",
+            fill: false,
+          },
+          {
+            label: "Puzzle Attempts",
+            data: mapSeries(metrics.timestamps, metrics.attempts),
+            yAxisID: "yAttempts",
+            borderColor: "#388E3C",
+            fill: false,
+          },
+          {
+            label: "Reaction Time (ms)",
+            data: mapSeries(metrics.timestamps, metrics.reaction_time),
+            yAxisID: "yReact",
+            borderColor: "#FBC02D",
+            fill: false,
+          },
+          {
+            label: "Sleep Rating",
+            data: mapSeries(rating.timestamps, rating.ratings),
+            yAxisID: "yRating",
+            borderColor: "#7B1FA2",
+            fill: false,
+            spanGaps: true,
+            pointRadius: 6,
+          },
+        ],
+      };
+
+      // 4) Draw the combined chart
       const canvas = document.getElementById("analyticsChart");
       canvas.style.display = "block";
       const ctx = canvas.getContext("2d");
-      if (analyticsChart) analyticsChart.destroy();
-
-      const labels = data.timestamps;
-      const tempSeries = data.temperature;
-      const humSeries = data.humidity;
-
-      // Build a series that is null except at 07:00 where rating exists
-      const ratingSeries = labels.map((ts) => {
-        const idx = data.ratings_timestamps.indexOf(ts);
-        return idx !== -1 ? data.ratings[idx] : null;
-      });
-
-      analyticsChart = new Chart(ctx, {
+      if (window.analyticsChart) window.analyticsChart.destroy();
+      window.analyticsChart = new Chart(ctx, {
         type: "line",
-        data: {
-          labels,
-          datasets: [
-            {
-              label: "Temperature (°C)",
-              data: tempSeries,
-              borderColor: "#FF8A65", // pastel orange
-              backgroundColor: "rgba(255,138,101,0.15)",
-              yAxisID: "y",
-              tension: 0.3,
-              fill: false,
-            },
-            {
-              label: "Humidity (%)",
-              data: humSeries,
-              borderColor: "#4FC3F7", // pastel blue
-              backgroundColor: "rgba(79,195,247,0.15)",
-              yAxisID: "y1",
-              tension: 0.3,
-              fill: false,
-            },
-            {
-              label: "Sleep Rating",
-              data: ratingSeries,
-              borderColor: "#BA68C8", // pastel purple
-              backgroundColor: "#BA68C8",
-              yAxisID: "y2",
-              tension: 0,
-              fill: false,
-              pointRadius: 6,
-              spanGaps: true, // connect the rating dots across missing values
-            },
-          ],
-        },
+        data,
         options: {
           scales: {
-            x: {
-              type: "category",
-              title: { display: true, text: "Time" },
-              ticks: { maxTicksLimit: 12 },
-            },
-            y: {
+            x: { type: "category", title: { display: true, text: "Time" } },
+            yTemp: {
               type: "linear",
               position: "left",
               title: { display: true, text: "Temperature (°C)" },
             },
-            y1: {
+            yHum: {
               type: "linear",
               position: "right",
               grid: { drawOnChartArea: false },
               title: { display: true, text: "Humidity (%)" },
             },
-            y2: {
+            yAttempts: {
+              type: "linear",
+              position: "left",
+              grid: { drawOnChartArea: false },
+              title: { display: true, text: "Attempts" },
+            },
+            yReact: {
+              type: "linear",
+              position: "right",
+              grid: { drawOnChartArea: false },
+              title: { display: true, text: "Reaction Time (ms)" },
+            },
+            yRating: {
               type: "linear",
               position: "right",
               grid: { drawOnChartArea: false },
               title: { display: true, text: "Sleep Rating" },
-              min: 1,
+              min: 0,
               max: 9,
             },
           },
+          interaction: {
+            mode: "index",
+            intersect: false,
+          },
         },
       });
+    })
+    .catch((err) => {
+      console.error("Error loading combined data:", err);
+      alert("Failed to load combined chart");
     });
 });
 

@@ -7,35 +7,18 @@ app = Flask(__name__, template_folder="templates", static_folder="static")
 ratings = []
 alarm_setting = {"hour": 7, "minute": 0}
 
-analytics_data = {
+rating_data = {
     "timestamps": [],
-    "temperature": [],
-    "humidity": [],
-    "ratings_timestamps": [],
     "ratings": [],
 }
 
-# Align start to the top of the hour 3 days ago
-start = (datetime.now() - timedelta(days=3)).replace(minute=0, second=0, microsecond=0)
-current = start
+sensor_data = {"timestamps": [], "temperature": [], "humidity": []}
 
-# Sleep ratings at 07:00 for past 3 days + today
-for i in range(4):
-    morning = (start + timedelta(days=i)).replace(hour=7)
-    analytics_data["ratings_timestamps"].append(morning.strftime("%Y-%m-%d %H:%M"))
-    analytics_data["ratings"].append(random.choice([6, 7, 7, 8, 6, 7, 8, 7]))
-
-interval = timedelta(minutes=15)
-while current <= datetime.now():
-    ts = current.strftime("%Y-%m-%d %H:%M")
-    analytics_data["timestamps"].append(ts)
-
-    hf = current.hour + current.minute / 60
-    temp = 22 + 6 * math.sin((hf - 6) / 24 * 2 * math.pi) + random.uniform(-0.5, 0.5)
-    hum = 55 + 15 * math.cos((hf - 6) / 24 * 2 * math.pi) + random.uniform(-3, 3)
-    analytics_data["temperature"].append(round(temp, 2))
-    analytics_data["humidity"].append(round(hum, 2))
-    current += interval
+puzzle_metrics = {
+    "timestamps": [],
+    "attempts": [],
+    "reaction_time": [],  # in milliseconds
+}
 
 
 @app.route("/")
@@ -44,10 +27,32 @@ def index():
 
 
 @app.route("/api/rating", methods=["POST"])
-def api_rating():
-    data = request.get_json()
-    ratings.append({"timestamp": data["timestamp"], "rating": data["rating"]})
-    return jsonify({"status": "success"})
+def post_rating():
+    """
+    Accepts JSON { "timestamp": <ISO‐string>, "rating": <0–9> }
+    and appends to rating_data.
+    """
+    data = request.get_json(force=True)
+    ts = data.get("timestamp")
+    r = data.get("rating")
+    if not (ts and isinstance(r, int) and 0 <= r <= 9):
+        return jsonify({"status": "error", "message": "invalid payload"}), 400
+
+    rating_data["timestamps"].append(ts)
+    rating_data["ratings"].append(r)
+    return jsonify({"status": "success"}), 201
+
+
+@app.route("/api/rating", methods=["GET"])
+def get_ratings():
+    """
+    Returns JSON:
+    {
+      "timestamps": [ ... ],
+      "ratings":    [ ... ]
+    }
+    """
+    return jsonify(rating_data)
 
 
 @app.route("/api/alarm", methods=["GET"])
@@ -76,17 +81,67 @@ def set_alarm():
     return jsonify({"status": "success", "hour": h, "minute": m})
 
 
-@app.route("/api/analytics")
-def api_analytics():
-    return jsonify(
-        {
-            "timestamps": analytics_data["timestamps"],
-            "temperature": analytics_data["temperature"],
-            "humidity": analytics_data["humidity"],
-            "ratings_timestamps": analytics_data["ratings_timestamps"],
-            "ratings": analytics_data["ratings"],
-        }
-    )
+@app.route("/api/sensor", methods=["POST"])
+def post_sensor():
+    """
+    Accept JSON: { "timestamp": "ISO8601", "temperature": float, "humidity": float }
+    """
+    data = request.get_json(force=True)
+    ts = data.get("timestamp")
+    t = data.get("temperature")
+    h = data.get("humidity")
+    # Basic validation
+    if not (ts and isinstance(t, (int, float)) and isinstance(h, (int, float))):
+        return jsonify({"status": "error", "message": "invalid payload"}), 400
+
+    sensor_data["timestamps"].append(ts)
+    sensor_data["temperature"].append(t)
+    sensor_data["humidity"].append(h)
+    return jsonify({"status": "success"}), 201
+
+
+@app.route("/api/sensor", methods=["GET"])
+def get_sensor():
+    """
+    Returns JSON:
+    {
+      "timestamps": [...],
+      "temperature": [...],
+      "humidity": [...]
+    }
+    """
+    return jsonify(sensor_data)
+
+
+@app.route("/api/metrics", methods=["POST"])
+def post_metrics():
+    """
+    Accept JSON: { "timestamp":"ISO8601", "attempts":int, "reaction_time":int }
+    """
+    data = request.get_json(force=True)
+    ts = data.get("timestamp")
+    a = data.get("attempts")
+    r = data.get("reaction_time")
+    if not (ts and isinstance(a, int) and isinstance(r, (int, float))):
+        return jsonify({"status": "error", "message": "invalid payload"}), 400
+
+    puzzle_metrics["timestamps"].append(ts)
+    puzzle_metrics["attempts"].append(a)
+    puzzle_metrics["reaction_time"].append(r)
+    return jsonify({"status": "success"}), 201
+
+
+@app.route("/api/metrics", methods=["GET"])
+def get_metrics():
+    """
+    Returns JSON:
+    {
+      "timestamps": [...],
+      "attempts": [...],
+      "reaction_time": [...]
+    }
+    """
+    return jsonify(puzzle_metrics)
 
 
 if __name__ == "__main__":
