@@ -33,13 +33,39 @@ setInterval(fetchWeather, 10 * 60 * 1000);
 
 // Save rating button
 document.getElementById("saveRating").addEventListener("click", () => {
-  const rating = parseInt(document.getElementById("rating").value);
+  const rating = parseInt(document.getElementById("rating").value, 10);
+
+  // Build a timestamp in YYYY-MM-DD HH:MM:SS for America/Los_Angeles
+  const now = new Date();
+  const fmt = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Los_Angeles',
+    year:   'numeric',
+    month:  '2-digit',
+    day:    '2-digit',
+    hour:   '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  });
+  // turn the parts into an object { year, month, day, hour, minute, second }
+  const parts = fmt.formatToParts(now).reduce((acc, p) => {
+    if (p.type !== 'literal') acc[p.type] = p.value;
+    return acc;
+  }, {});
+  const timestamp = `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}:${parts.second}`;
+
   fetch("/api/rating", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ timestamp: new Date().toISOString(), rating }),
-  }).then(() => alert("Rating saved!"));
+    body: JSON.stringify({ timestamp, rating }),
+  })
+  .then(() => alert("Rating saved!"))
+  .catch(err => {
+    console.error("Error saving rating:", err);
+    alert("Failed to save rating");
+  });
 });
+
 
 // Analytics chart
 document.getElementById("showAnalytics").addEventListener("click", () => {
