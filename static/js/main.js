@@ -130,8 +130,7 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
           yAxisID: "yRating",
           borderColor: "#7B1FA2",
           fill: false,
-          spanGaps: true,
-          pointRadius: 6,
+          spanGaps: true
         },
       ];
 
