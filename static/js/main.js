@@ -98,6 +98,7 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
           yAxisID: "yTemp",
           borderColor: "#D32F2F",
           fill: false,
+          spanGaps: true
         },
         {
           label: "ESP32 Hum (%)",
@@ -105,6 +106,7 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
           yAxisID: "yHum",
           borderColor: "#1976D2",
           fill: false,
+          spanGaps: true
         },
         {
           label: "Puzzle Attempts",
@@ -112,6 +114,7 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
           yAxisID: "yAttempts",
           borderColor: "#388E3C",
           fill: false,
+          spanGaps: true
         },
         {
           label: "Reaction Time (ms)",
@@ -119,6 +122,7 @@ document.getElementById("showAnalytics").addEventListener("click", () => {
           yAxisID: "yReact",
           borderColor: "#FBC02D",
           fill: false,
+          spanGaps: true
         },
         {
           label: "Sleep Rating",
